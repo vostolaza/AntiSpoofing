@@ -1,9 +1,11 @@
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 import json
 
-consumer = KafkaConsumer('auth', bootstrap_servers='localhost:29092')
+consumer = KafkaConsumer('auth', bootstrap_servers='localhost:29092',
+                         auto_offset_reset='earliest', enable_auto_commit=True, group_id='my-group')
 producer = KafkaProducer(bootstrap_servers='localhost:29092')
 
 client = MongoClient('localhost', 27017)
@@ -17,40 +19,49 @@ attempts = db.attempts
 def login(data):
     username, password = data["username"], data["password"]
     if data["username"] == username and data["password"] == password:
-        attempts.update_one({"_id": data["_id"]}, 
+        attempts.update_one({"_id": data["_id"]},
                             {"$set": {
                                 "status": "antiSpoofing"}})
-        producer.send('antiSpoofing', event.value)
+        producer.send('antiSpoofing', json.dumps(data).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]}, 
+        attempts.update_one({"_id": data["_id"]},
                             {"$set": {
                                 "status": "invalid",
                                 "reason": "auth"}})
-        producer.send('issues', f'Auth: invalid credentials for user {username}')
+        producer.send(
+            'issues', json.dumps({"message": f'Auth: invalid credentials for user {username}'}).encode('utf-8'))
 
 
 def signup(data):
-    username, password = data["username"], data["password"], data["email"]
-    if auth.find_one({"username": username}) is None and auth.find_one({"email": password}) is None:
-        attempts.update_one({"_id": data["_id"]}, 
+    username, email = data["username"], data["email"]
+    if auth.find_one({"username": username}) is None and auth.find_one({"email": email}) is None:
+        attempts.update_one({"_id": data["_id"]},
                             {"$set": {
                                 "status": "antiSpoofing"}})
-        producer.send('antiSpoofing', event.value)
+        print("Sending to antiSpoofing")
+        producer.send('antiSpoofing', json.dumps(data).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]}, 
-                            { "$set": {
+        attempts.update_one({"_id": data["_id"]},
+                            {"$set": {
                                 "status": "invalid",
                                 "reason": "auth"}})
-        producer.send('issues', f'Auth: user {username} cannot be created because already exists')
+        print("Sending to issues")
+    producer.send(
+        'issues', json.dumps({"message": f'Auth: user {username} cannot be created because already exists'}).encode('utf-8'))
 
 
 for event in consumer:
     data = json.loads(event.value)
-    attempt = attempts.find_one({"_id": data["_id"]})
+    print("Attempt", data["_id"])
+    attempt = attempts.find_one({"_id": ObjectId(data["_id"])})
     if attempt is None:
-        producer.send('issues', "Auth: attemp not found")
-        
-    if data["type"] == "login":
-        login(data)
-    elif data["type"] == "signup":
-        signup(data)
+        producer.send('issues', json.dumps(
+            {'message': 'Auth: attempt not found'}).encode('utf-8'))
+    else:
+        print("Found attempt")
+        if data["type"] == "login":
+            print("Login")
+            login(data)
+        elif data["type"] == "signup":
+            print("Signup")
+            signup(data)
