@@ -19,12 +19,12 @@ attempts = db.attempts
 def login(data):
     username, password = data["username"], data["password"]
     if data["username"] == username and data["password"] == password:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "antiSpoofing"}})
         producer.send('antiSpoofing', json.dumps(data).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "invalid",
                                 "reason": "auth"}})
@@ -35,13 +35,14 @@ def login(data):
 def signup(data):
     username, email = data["username"], data["email"]
     if auth.find_one({"username": username}) is None and auth.find_one({"email": email}) is None:
-        attempts.update_one({"_id": data["_id"]},
+        print('----', data["_id"])
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "antiSpoofing"}})
         print("Sending to antiSpoofing")
         producer.send('antiSpoofing', json.dumps(data).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "invalid",
                                 "reason": "auth"}})
@@ -59,9 +60,13 @@ for event in consumer:
             {'message': 'Auth: attempt not found'}).encode('utf-8'))
     else:
         print("Found attempt")
+        print(data["type"], data["type"])
         if data["type"] == "login":
             print("Login")
             login(data)
         elif data["type"] == "signup":
             print("Signup")
             signup(data)
+        print("attempt['_id']", attempt['_id'])
+        attempt = attempts.find_one({"_id": ObjectId(data["_id"])})
+        print("ATTEMP::ATTEMPT", attempt)

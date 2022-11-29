@@ -4,6 +4,7 @@ import face_recognition
 import torch
 from kafka import KafkaConsumer, KafkaProducer
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 consumer = KafkaConsumer(
     'faceRecognition', bootstrap_servers='localhost:29092', auto_offset_reset='earliest', enable_auto_commit=True, group_id='my-group')
@@ -60,7 +61,7 @@ def compareFrames(original, login):
 
 for event in consumer:
     data = json.loads(event.value)
-    attempt = attempts.find_one({"_id": data["_id"]})
+    attempt = attempts.find_one({"_id": ObjectId(data["_id"])})
     if attempt is None:
         producer.send('issues', json.dumps(
             {"message": "Attempt not found"}).encode('utf-8'))
@@ -76,14 +77,14 @@ for event in consumer:
 
     videosMatch = compareFrames(originalFrames, loginFrames)
     if videosMatch:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "valid"}})
         print("logged in user", data["username"])
         producer.send(
             'success', json.dumps({"message": f'Successfully logged in user {data["username"]}'}).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "invalid",
                                 "reason": "faceRecognition"}})

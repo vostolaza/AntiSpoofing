@@ -25,7 +25,7 @@ class LoginApiView(APIView):
                 return JsonResponse({'message': 'Attempt not found'}, )
             if attempt["status"] == "invalid":
                 return JsonResponse({'message': 'Invalid credentials'}, )
-            if attempt["status"] == "success":
+            if attempt["status"] == "valid":
                 return JsonResponse({'message': 'Success!'}, )
 
 
@@ -42,9 +42,11 @@ class SignUpApiView(APIView):
 
         while True:
             attempt_val = attempts.find_one({"_id": attempt})
+            reason = attempt_val.get("reason", "")
+
             if attempt_val is None:
                 return JsonResponse({'message': 'Attempt not found'}, )
             if attempt_val["status"] == "invalid":
-                return JsonResponse({'message': 'Invalid credentials'}, )
-            if attempt_val["status"] == "success":
+                return JsonResponse({'message': "Invalid credentials: {}".format(reason)}, )
+            if attempt_val["status"] == "valid":
                 return JsonResponse({'message': 'Success!'}, )

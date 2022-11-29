@@ -44,9 +44,11 @@ const SignUp = () => {
   const signUpUser = async (body) => {
     try {
       const response = await signup(body);
-      alert(`Sign up successful! ${response.data}`);
-      navigate("");
+      console.log(response.data.message);
+      alert(`${response.data.message}`);
+      navigate("/");
     } catch (e) {
+      alert("Sign up failed");
       console.log(e);
     }
   };

@@ -108,14 +108,14 @@ def signup(data, realVideo):
     if realVideo:
         auth.insert_one({"username": data["username"], "password": data["password"],
                          "email": data["email"], "gender": data["gender"], "video": data["video"]})
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set":
                             {"status": "valid"}})
         print("Sending to success")
         producer.send(
             'success', json.dumps({"message": f'User {data["username"]} successfully created'}).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]},
+        attempts.update_one({"_id": ObjectId(data["_id"])},
                             {"$set": {
                                 "status": "invalid",
                                 "reason": "spoofing"}})
@@ -126,11 +126,11 @@ def signup(data, realVideo):
 
 def login(data, realVideo):
     if realVideo:
-        attempts.update_one({"_id": data["_id"]}, {
+        attempts.update_one({"_id": ObjectId(data["_id"])}, {
             "$set": {"status": "faceRecognition"}})
         producer.send('faceRecognition', json.dumps(data).encode('utf-8'))
     else:
-        attempts.update_one({"_id": data["_id"]}, {
+        attempts.update_one({"_id": ObjectId(data["_id"])}, {
             "$set": {"status": "invalid", "reason": "spoofing"}})
         producer.send(
             'issues', json.dumps({"message": f'Spoofing: user {data["username"]} cannot be logged in'})).encode('utf-8')

@@ -27,7 +27,7 @@ const Login = () => {
   const loginUser = async (body) => {
     try {
       const response = await login(body);
-      alert(`Login successful! ${response.data}`);
+      alert(`Login successful! ${response.data.message}`);
       navigate("/dashboard");
     } catch (e) {
       console.log(e);
