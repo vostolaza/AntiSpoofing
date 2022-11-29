@@ -2,6 +2,8 @@
 import Webcam from "react-webcam";
 import { useRef, useState, useCallback } from "react";
 import Button from "@mui/material/Button";
+import S3 from 'react-aws-s3';
+
 const WebcamStreamCapture = () => {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -36,18 +38,19 @@ const WebcamStreamCapture = () => {
 
   const handleDownload = useCallback(() => {
     if (recordedChunks.length) {
-      const blob = new Blob(recordedChunks, {
-        type: "video/webm"
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      document.body.appendChild(a);
-      a.style = "display: none";
-      a.href = url;
-      a.download = "react-webcam-stream-capture.webm";
-      a.click();
-      window.URL.revokeObjectURL(url);
-      setRecordedChunks([]);
+      console.log('recordedChunks', recordedChunks)
+      // const blob = new Blob(recordedChunks, {
+      //   type: "video/webm"
+      // });
+      // const url = URL.createObjectURL(blob);
+      // const a = document.createElement("a");
+      // document.body.appendChild(a);
+      // a.style = "display: none";
+      // a.href = url;
+      // a.download = "react-webcam-stream-capture.webm";
+      // a.click();
+      // window.URL.revokeObjectURL(url);
+      // setRecordedChunks([]);
     }
   }, [recordedChunks]);
 
