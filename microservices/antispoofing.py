@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch
 import json
 import cv2
-from zmq import device
 
 
 class CNN(nn.Module):
@@ -132,7 +131,7 @@ def login(data, realVideo):
         producer.send('faceRecognition', json.dumps(data).encode('utf-8'))
     else:
         attempts.update_one({"_id": data["_id"]}, {
-            "status": "invalid", "reason": "spoofing"})
+            "$set": {"status": "invalid", "reason": "spoofing"}})
         producer.send(
             'issues', json.dumps({"message": f'Spoofing: user {data["username"]} cannot be logged in'})).encode('utf-8')
 
