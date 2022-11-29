@@ -1,8 +1,14 @@
-
 import Webcam from "react-webcam";
 import { useRef, useState, useCallback } from "react";
 import Button from "@mui/material/Button";
-import S3 from 'react-aws-s3';
+import S3 from "react-aws-s3";
+import { Buffer } from "buffer";
+const config = {
+  bucketName: `${process.env.REACT_APP_AWS_BUCKET}`,
+  region: `${process.env.REACT_APP_AWS_REGION}`,
+  accessKeyId: `${process.env.REACT_APP_AWS_ACCESS_KEY_ID}`,
+  secretAccessKey: `${process.env.REACT_APP_AWS_SECRET_ACCESS_KEY}`,
+};
 
 const WebcamStreamCapture = () => {
   const webcamRef = useRef(null);
@@ -10,10 +16,12 @@ const WebcamStreamCapture = () => {
   const [capturing, setCapturing] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState([]);
 
+  window.Buffer = Buffer;
+
   const handleStartCaptureClick = useCallback(() => {
     setCapturing(true);
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-      mimeType: "video/webm"
+      mimeType: "video/webm",
     });
     mediaRecorderRef.current.addEventListener(
       "dataavailable",
@@ -36,21 +44,19 @@ const WebcamStreamCapture = () => {
     setCapturing(false);
   }, [mediaRecorderRef, webcamRef, setCapturing]);
 
-  const handleDownload = useCallback(() => {
-    if (recordedChunks.length) {
-      console.log('recordedChunks', recordedChunks)
-      // const blob = new Blob(recordedChunks, {
-      //   type: "video/webm"
-      // });
-      // const url = URL.createObjectURL(blob);
-      // const a = document.createElement("a");
-      // document.body.appendChild(a);
-      // a.style = "display: none";
-      // a.href = url;
-      // a.download = "react-webcam-stream-capture.webm";
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-      // setRecordedChunks([]);
+  const handleDownload = useCallback(async () => {
+    if (!recordedChunks.length) return;
+    const blobObj = recordedChunks[0];
+    const videoFile = new File([blobObj], "video.webm", {
+      type: "video/webm",
+    });
+    const ReactS3Client = new S3(config);
+    const date = new Date();
+    const fileName = `video-${date.getTime()}.webm`;
+    try {
+      const s3Response = await ReactS3Client.uploadFile(videoFile, fileName);
+    } catch (e) {
+      console.log("e", e);
     }
   }, [recordedChunks]);
 
@@ -58,12 +64,18 @@ const WebcamStreamCapture = () => {
     <>
       <Webcam audio={false} ref={webcamRef} />
       {capturing ? (
-        <Button variant="contained"onClick={handleStopCaptureClick}>Stop Capture</Button>
+        <Button variant="contained" onClick={handleStopCaptureClick}>
+          Stop Capture
+        </Button>
       ) : (
-        <Button variant="contained" onClick={handleStartCaptureClick}>Start Capture</Button>
+        <Button variant="contained" onClick={handleStartCaptureClick}>
+          Start Capture
+        </Button>
       )}
       {recordedChunks.length > 0 && (
-        <Button onClick={handleDownload} variant="contained">Download</Button>
+        <Button onClick={handleDownload} variant="contained">
+          Download
+        </Button>
       )}
     </>
   );
