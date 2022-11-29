@@ -12,12 +12,15 @@ import Modal from "@mui/material/Modal";
 import VideoCapture from "../../components/VideoCapture";
 import { useNavigate } from "react-router-dom";
 import login from "../../api/login";
+import { useContext } from "react";
+import { UserContext } from "../../utils/Security/UserContext";
 const Login = () => {
   // Fields
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const disableContinue = useRef(true);
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
 
   // Modal
   const [open, setOpen] = useState(false);
@@ -27,12 +30,13 @@ const Login = () => {
   const loginUser = async (body) => {
     try {
       const response = await login(body);
+      if (!response.data.valid) throw response.data.message ?? "";
       alert(`Login successful! ${response.data.message}`);
-      //ACTUALIZAR CONTEXT DEL FRONTEND
+      setUser(username);
       navigate("/dashboard");
     } catch (e) {
       console.log(e);
-      alert("Login failed");
+      alert(e);
     }
   };
 

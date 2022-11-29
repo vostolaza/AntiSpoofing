@@ -137,6 +137,7 @@ def login(data, realVideo):
 
 
 for event in consumer:
+
     data = json.loads(event.value)
     print("In antiSpoofing")
     attempt = attempts.find_one({"_id": ObjectId(data["_id"])})

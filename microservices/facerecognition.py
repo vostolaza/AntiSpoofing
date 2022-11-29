@@ -55,13 +55,13 @@ def compareFrames(original, login):
 
 
 for event in consumer:
+
     data = json.loads(event.value)
     attempt = attempts.find_one({"_id": ObjectId(data["_id"])})
     if attempt is None:
         producer.send('issues', json.dumps(
             {"message": "Attempt not found"}).encode('utf-8'))
 
-    # TODO: Get videos from S3
     user = auth.find_one({"username": data["username"]})
     originalVideo = ""
     if user is not None:
