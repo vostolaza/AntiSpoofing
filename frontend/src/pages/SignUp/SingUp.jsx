@@ -21,17 +21,26 @@ const SignUp = () => {
   const usernameError = useRef(username.length < 3);
   const passwordError = useRef(password.length < 6);
   const emailError = useRef(!email.includes("@"));
+  const genderError = useRef(gender === "");
+
   const navigate = useNavigate();
 
   useEffect(() => {
     usernameError.current = username.length < 3;
     passwordError.current = password.length < 6;
     emailError.current = !email.includes("@");
+    genderError.current = gender === "";
     setDisableContinueButton(
-      usernameError.current || passwordError.current || emailError.current
+      usernameError.current ||
+        passwordError.current ||
+        emailError.current ||
+        genderError.current
     );
-  }, [username, password, email]);
+  }, [username, password, email, gender]);
 
+  const handleGenderChange = (event) => {
+    setGender(event.target.value);
+  };
   const signUpUser = async (body) => {
     try {
       const response = await signup(body);
@@ -104,6 +113,8 @@ const SignUp = () => {
               row
               aria-labelledby="demo-row-radio-buttons-group-label"
               name="row-radio-buttons-group"
+              value={gender}
+              onChange={handleGenderChange}
             >
               <FormControlLabel
                 value="female"

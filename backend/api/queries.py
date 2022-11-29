@@ -14,7 +14,6 @@ class LoginApiView(APIView):
     def post(self, request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        print(body)
         attempt = attempts.insert_one({"status": "auth"}).inserted_id
         body["_id"] = str(attempt)
         body["type"] = "login"
@@ -34,18 +33,18 @@ class SignUpApiView(APIView):
     def post(self, request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        print(body)
         attempt = attempts.insert_one({"status": "auth"}).inserted_id
+
         body["_id"] = str(attempt)
         body["type"] = "signup"
         # {'username': 'miunmn', 'password': '1234567', 'email': 'esteban.principe@utec.edu.pe', 'gender': '', 'video': 'https://bigdata-2022-utec-antispoofing-project.s3-us-east-2.amazonaws.com/signup-miunmn-1669704119436.webm', 'fileName': 'signup-miunmn-1669704119436.webm'}
         producer.send('auth', json.dumps(body).encode('utf-8'))
 
         while True:
-            attempt = attempts.find_one({"_id": attempt})
-            if attempt is None:
+            attempt_val = attempts.find_one({"_id": attempt})
+            if attempt_val is None:
                 return JsonResponse({'message': 'Attempt not found'}, )
-            if attempt["status"] == "invalid":
+            if attempt_val["status"] == "invalid":
                 return JsonResponse({'message': 'Invalid credentials'}, )
-            if attempt["status"] == "success":
+            if attempt_val["status"] == "success":
                 return JsonResponse({'message': 'Success!'}, )
