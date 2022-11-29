@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch
 import json
 import cv2
-from zmq import device
 
 
 class CNN(nn.Module):
