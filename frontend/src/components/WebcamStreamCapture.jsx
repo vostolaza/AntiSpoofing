@@ -3,6 +3,8 @@ import { useRef, useState, useCallback } from "react";
 import Button from "@mui/material/Button";
 import S3 from "react-aws-s3";
 import { Buffer } from "buffer";
+import Stack from "@mui/material/Stack";
+
 const config = {
   bucketName: `${process.env.REACT_APP_AWS_BUCKET}`,
   region: `${process.env.REACT_APP_AWS_REGION}`,
@@ -10,7 +12,11 @@ const config = {
   secretAccessKey: `${process.env.REACT_APP_AWS_SECRET_ACCESS_KEY}`,
 };
 
-const WebcamStreamCapture = () => {
+const WebcamStreamCapture = ({
+  labelName,
+  videoCapAction,
+  videoCapActionBody,
+}) => {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
@@ -52,9 +58,14 @@ const WebcamStreamCapture = () => {
     });
     const ReactS3Client = new S3(config);
     const date = new Date();
-    const fileName = `video-${date.getTime()}.webm`;
+    const fileName = `${labelName}-${date.getTime()}.webm`;
     try {
       const s3Response = await ReactS3Client.uploadFile(videoFile, fileName);
+      videoCapAction({
+        ...videoCapActionBody,
+        video: s3Response.location,
+        fileName: fileName,
+      });
     } catch (e) {
       console.log("e", e);
     }
@@ -62,21 +73,29 @@ const WebcamStreamCapture = () => {
 
   return (
     <>
-      <Webcam audio={false} ref={webcamRef} />
-      {capturing ? (
-        <Button variant="contained" onClick={handleStopCaptureClick}>
-          Stop Capture
-        </Button>
-      ) : (
-        <Button variant="contained" onClick={handleStartCaptureClick}>
-          Start Capture
-        </Button>
-      )}
-      {recordedChunks.length > 0 && (
-        <Button onClick={handleDownload} variant="contained">
-          Download
-        </Button>
-      )}
+      <div className="flex-column ">
+        <div className="d-flex justify-content-center">
+          <Webcam audio={false} ref={webcamRef} />
+        </div>
+        <div className="d-flex justify-content-center">
+          <Stack direction="row" justifyContent="space-between">
+            {capturing ? (
+              <Button variant="contained" onClick={handleStopCaptureClick}>
+                Stop Capture
+              </Button>
+            ) : (
+              <Button variant="contained" onClick={handleStartCaptureClick}>
+                Start Capture
+              </Button>
+            )}
+            {recordedChunks.length > 0 && (
+              <Button onClick={handleDownload} variant="contained">
+                Download
+              </Button>
+            )}
+          </Stack>
+        </div>
+      </div>
     </>
   );
 };
