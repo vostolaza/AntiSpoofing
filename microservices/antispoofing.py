@@ -108,7 +108,7 @@ def evaluateVideo(frames):
 def signup(data, realVideo):
     if realVideo:
         auth.insert_one({"username": data["username"], "password": data["password"],
-                         "email": data["email"], "gender": data["gender"]})
+                         "email": data["email"], "gender": data["gender"], "video": data["video"]})
         attempts.update_one({"_id": data["_id"]},
                             {"$set":
                             {"status": "valid"}})
@@ -145,7 +145,6 @@ for event in consumer:
         producer.send('issues', json.dumps(
             {"message": "Spoofing: attempt not found"}).encode('utf-8'))
     print("Found attempt")
-    # TODO: Get video from S3
     video = data["video"]
     frames = getFramesFromVideo(video)
     print("Got frames: ", frames.shape)

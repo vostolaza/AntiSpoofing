@@ -14,6 +14,7 @@ client = MongoClient('localhost', 27017)
 db = client.SRAS
 
 attempts = db.attempts
+auth = db.auth
 
 
 def getFramesFromVideo(video, samples_per_video=16, dim=128):
@@ -65,7 +66,10 @@ for event in consumer:
             {"message": "Attempt not found"}).encode('utf-8'))
 
     # TODO: Get videos from S3
-    originalVideo = "../CASIA_faceAntisp/test_release/7/1.avi"
+    user = auth.find_one({"username": data["username"]})
+    originalVideo = ""
+    if user is not None:
+        originalVideo = user["video"]
     originalFrames = getFramesFromVideo(originalVideo)
     loginVideo = data["video"]
     loginFrames = getFramesFromVideo(loginVideo)
