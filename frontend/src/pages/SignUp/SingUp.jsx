@@ -36,7 +36,7 @@ const SignUp = () => {
     try {
       const response = await signup(body);
       alert(`Sign up successful! ${response.data}`);
-      navigate("/login");
+      navigate("");
     } catch (e) {
       console.log(e);
     }
