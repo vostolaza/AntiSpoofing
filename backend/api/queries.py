@@ -20,12 +20,12 @@ class LoginApiView(APIView):
         producer.send('auth', json.dumps(body).encode('utf-8'))
 
         while True:
-            attempt = attempts.find_one({"_id": attempt})
-            if attempt is None:
+            attempt_val = attempts.find_one({"_id": attempt})
+            if attempt_val is None:
                 return JsonResponse({'message': 'Attempt not found'}, )
-            if attempt["status"] == "invalid":
+            if attempt_val["status"] == "invalid":
                 return JsonResponse({'message': 'Invalid credentials'}, )
-            if attempt["status"] == "valid":
+            if attempt_val["status"] == "valid":
                 return JsonResponse({'message': 'Success!'}, )
 
 

@@ -133,7 +133,7 @@ def login(data, realVideo):
         attempts.update_one({"_id": ObjectId(data["_id"])}, {
             "$set": {"status": "invalid", "reason": "spoofing"}})
         producer.send(
-            'issues', json.dumps({"message": f'Spoofing: user {data["username"]} cannot be logged in'})).encode('utf-8')
+            'issues', json.dumps({"message": f'Spoofing: user {data["username"]} cannot be logged in'}).encode('utf-8'))
 
 
 for event in consumer:

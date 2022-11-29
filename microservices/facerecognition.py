@@ -1,4 +1,5 @@
 import json
+import numpy as np
 import cv2
 import face_recognition
 import torch
@@ -36,27 +37,21 @@ def getFramesFromVideo(video, samples_per_video=16, dim=128):
                 failed = True
                 continue
             (x, y, w, h) = faces[0]
-            frames.append(torch.Tensor(cv2.resize(
-                img[y:y+h, x:x+w], dsize=(dim, dim))))
+            frames.append(cv2.resize(
+                img[y:y+h, x:x+w], dsize=(dim, dim)))
             failed = False
         else:
             break
         count += 1
-    return torch.stack(frames).permute(0, 3, 1, 2)
+    return frames
 
 
 def compareFrames(original, login):
-    count = 0
-    for frame in login:
-        comp = face_recognition.compare_faces(original, frame)[0]
-        val = 0
-        for i in comp:
-            for y in i:
-                if y:
-                    val += 1
-        if val / (len(comp)*len(comp[0])) > 0.8:
-            count += 1
-    return count/len(login) >= 0.8
+    login = face_recognition.face_encodings(login[0])[0]
+    original = face_recognition.face_encodings(original[0])[0]
+    comp = face_recognition.compare_faces([original], login)
+
+    return comp[0]
 
 
 for event in consumer:
@@ -71,6 +66,7 @@ for event in consumer:
     originalVideo = ""
     if user is not None:
         originalVideo = user["video"]
+    print('originalVideo', originalVideo)
     originalFrames = getFramesFromVideo(originalVideo)
     loginVideo = data["video"]
     loginFrames = getFramesFromVideo(loginVideo)

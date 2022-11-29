@@ -28,6 +28,7 @@ const Login = () => {
     try {
       const response = await login(body);
       alert(`Login successful! ${response.data.message}`);
+      //ACTUALIZAR CONTEXT DEL FRONTEND
       navigate("/dashboard");
     } catch (e) {
       console.log(e);
