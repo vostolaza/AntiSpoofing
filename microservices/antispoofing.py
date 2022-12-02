@@ -44,8 +44,13 @@ class CNN(nn.Module):
         return out
 
 
-consumer = KafkaConsumer('antiSpoofing', bootstrap_servers='localhost:29092',
-                         auto_offset_reset='earliest', enable_auto_commit=True, group_id='my-group')
+consumer = KafkaConsumer('antiSpoofing',
+                         bootstrap_servers=['localhost:29092',
+                                            'localhost:29093',
+                                            'localhost:29094'],
+                         auto_offset_reset='earliest',
+                         enable_auto_commit=True,
+                         group_id='my-group')
 producer = KafkaProducer(bootstrap_servers='localhost:29092')
 
 client = MongoClient('localhost', 27017)

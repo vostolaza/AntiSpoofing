@@ -4,7 +4,7 @@ import json
 
 
 producer = KafkaProducer(
-    bootstrap_servers='localhost:29092')
+    bootstrap_servers=['localhost:29092', 'localhost:29093', 'localhost:29094'])
 
 client = MongoClient('localhost', 27017)
 db = client.SRAS
